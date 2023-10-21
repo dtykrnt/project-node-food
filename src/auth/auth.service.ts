@@ -30,6 +30,11 @@ export class AuthService {
         },
       });
       if (!user) throw new ForbiddenException('Invalid Credential!');
+
+      const passMatches = await argon.verify(user.password, dto.password);
+
+      if (!passMatches) throw new ForbiddenException('Invalid Credential!');
+
       delete user.password;
       return user;
     } catch (error) {
