@@ -1,26 +1,72 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { AuthDto } from './dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import * as argon from 'argon2';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private jwt: JwtService,
+    private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {}
+  async register(dto: AuthDto) {
+    const hash = await argon.hash(dto.password);
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          email: dto.email,
+          password: hash,
+        },
+      });
+      return this.signinToken(user.id, user.email);
+    } catch (error) {
+      return error;
+    }
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  async login(dto: AuthDto) {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          email: dto.email,
+        },
+      });
+      if (!user) throw new ForbiddenException('Invalid Credential!');
+
+      const passMatches = await argon.verify(user.password, dto.password);
+
+      if (!passMatches) throw new ForbiddenException('Invalid Credential!');
+
+      return this.signinToken(user.id, user.email);
+    } catch (error) {
+      return error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
+  logout() {
+    return '';
   }
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+  private async signinToken(
+    userId: number,
+    email: string,
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+    const secret = this.config.get('JWT_SECRET');
 
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: '150m',
+      secret: secret,
+    });
+
+    return {
+      access_token: token,
+    };
   }
 }

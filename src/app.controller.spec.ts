@@ -18,9 +18,9 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it(`should return "Server Active Last Time: ${dayjs().format()}!"`, () => {
+    it(`should return "Server Last Active: ${dayjs().format()}!"`, () => {
       expect(appController.getHello()).toBe(
-        `Server Active Last Time: ${dayjs().format()}`,
+        `Server Last Active: ${dayjs().format()}`,
       );
     });
   });
