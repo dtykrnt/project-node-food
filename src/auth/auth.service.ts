@@ -2,10 +2,16 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AuthDto } from './dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as argon from 'argon2';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private jwt: JwtService,
+    private readonly config: ConfigService,
+    private readonly prisma: PrismaService,
+  ) {}
   async register(dto: AuthDto) {
     const hash = await argon.hash(dto.password);
     try {
@@ -15,8 +21,7 @@ export class AuthService {
           password: hash,
         },
       });
-      delete user.password;
-      return user;
+      return this.signinToken(user.id, user.email);
     } catch (error) {
       return error;
     }
@@ -35,8 +40,7 @@ export class AuthService {
 
       if (!passMatches) throw new ForbiddenException('Invalid Credential!');
 
-      delete user.password;
-      return user;
+      return this.signinToken(user.id, user.email);
     } catch (error) {
       return error;
     }
@@ -44,5 +48,25 @@ export class AuthService {
 
   logout() {
     return '';
+  }
+
+  private async signinToken(
+    userId: number,
+    email: string,
+  ): Promise<{ access_token: string }> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+    const secret = 'app-secret';
+
+    const token = await this.jwt.signAsync(payload, {
+      expiresIn: '150m',
+      secret: secret,
+    });
+
+    return {
+      access_token: token,
+    };
   }
 }
