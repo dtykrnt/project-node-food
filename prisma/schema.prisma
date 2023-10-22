@@ -20,6 +20,11 @@ model User {
 
   firstName String?
   lastName  String?
+  //
+
+  favorites Favorite[]
+
+  orders Order[]
 }
 
 model Favorite {
@@ -30,4 +35,31 @@ model Favorite {
   title       String?
   description String?
   link        String
+  User        User?   @relation(fields: [userId], references: [id])
+  userId      Int?
+}
+
+model Order {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  amount Int
+  userId Int
+
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[]
+}
+
+model Product {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt()
+
+  name  String
+  price Int
+  count Int    @default(0)
+
+  orders  Order? @relation(fields: [orderId], references: [id])
+  orderId Int?
 }

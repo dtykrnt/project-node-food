@@ -1,14 +1,13 @@
 import {
   Controller,
   Get,
-  Body,
   Patch,
   Param,
   Delete,
   UseGuards,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from '@prisma/client';
 import { GetUser } from 'src/auth/decorator';
 import { JWTGuard } from 'src/auth/guard';
@@ -23,23 +22,23 @@ export class UsersController {
     return user;
   }
 
-  @Get()
+  @Get('list')
   findAll() {
     return this.usersService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  @Get('/detail/:id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Patch('/update/:id')
+  update(@Param('id') id: string) {
+    return this.usersService.update(+id);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  @Delete('/delete/:id')
+  remove() {
+    return this.usersService.remove();
   }
 }
