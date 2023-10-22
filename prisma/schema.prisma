@@ -58,6 +58,7 @@ model Product {
 
   name  String
   price Int
+  count Int    @default(0)
 
   orders  Order? @relation(fields: [orderId], references: [id])
   orderId Int?
