@@ -1,24 +1,48 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RUser } from './types';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(): Promise<RUser[]> {
+    try {
+      const users = await this.prisma.user.findMany();
+      users.forEach(($el) => {
+        this.safeUser($el);
+      });
+      return users;
+    } catch (error) {
+      return error;
+    }
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: number): Promise<RUser | { message: any }> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          id: id,
+        },
+      });
+      if (!user) return { message: 'no user found' };
+      return this.safeUser(user);
+    } catch (error) {
+      return { message: error };
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
+  update(id: number) {
     return `This action updates a #${id} user`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove() {
+    return `This action removes a  user`;
+  }
+
+  private safeUser(user: User): RUser {
+    delete user.password;
+    return user;
   }
 }
