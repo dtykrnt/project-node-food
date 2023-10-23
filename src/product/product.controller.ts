@@ -8,12 +8,15 @@ import {
   Patch,
   Post,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { JWTGuard } from 'src/auth/guard';
 import { ProductDto } from './dto';
+import { TransformInterceptor } from 'src/interceptor';
 
 @UseGuards(JWTGuard)
+@UseInterceptors(TransformInterceptor)
 @Controller({ version: '1', path: 'products' })
 export class ProductController {
   constructor(private readonly productService: ProductService) {}

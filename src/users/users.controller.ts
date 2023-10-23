@@ -7,12 +7,16 @@ import {
   UseGuards,
   ParseIntPipe,
   Version,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from '@prisma/client';
 import { GetUser } from 'src/auth/decorator';
 import { JWTGuard } from 'src/auth/guard';
+import { LoggingInterceptor, TransformInterceptor } from 'src/interceptor';
 
+@UseInterceptors(LoggingInterceptor)
+@UseInterceptors(TransformInterceptor)
 @UseGuards(JWTGuard)
 @Controller({ version: '1', path: 'users' })
 export class UsersController {
