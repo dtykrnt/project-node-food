@@ -14,7 +14,7 @@ import { JWTGuard } from 'src/auth/guard';
 import { ProductDto } from './dto';
 
 @UseGuards(JWTGuard)
-@Controller('products')
+@Controller({ version: '1', path: 'products' })
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

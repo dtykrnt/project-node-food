@@ -37,8 +37,12 @@ export class UsersService {
     return `This action updates a #${id} user`;
   }
 
-  remove() {
-    return `This action removes a  user`;
+  remove(id: number) {
+    return this.prisma.user.delete({
+      where: {
+        id,
+      },
+    });
   }
 
   private safeUser(user: User): RUser {

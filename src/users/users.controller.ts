@@ -6,6 +6,7 @@ import {
   Delete,
   UseGuards,
   ParseIntPipe,
+  Version,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from '@prisma/client';
@@ -13,12 +14,18 @@ import { GetUser } from 'src/auth/decorator';
 import { JWTGuard } from 'src/auth/guard';
 
 @UseGuards(JWTGuard)
-@Controller('users')
+@Controller({ version: '1', path: 'users' })
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('me')
   getMe(@GetUser() user: User) {
+    return user;
+  }
+
+  @Version('2')
+  @Get('me')
+  getMe2(@GetUser() user: User) {
     return user;
   }
 
@@ -38,7 +45,7 @@ export class UsersController {
   }
 
   @Delete('/delete/:id')
-  remove() {
-    return this.usersService.remove();
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usersService.remove(id);
   }
 }
